@@ -1,0 +1,121 @@
+Description: "CloudFormationVPC"
+
+Parameters:
+  LatestAmiId:
+    Description: "AMI for EC2"
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+
+Resources:
+  CFVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: "172.31.0.0/16"
+      EnableDnsHostnames: false
+      EnableDnsSupport: true
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: CloudFormationVPC
+
+  CFPublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: CFVPC
+      CidrBlock: "172.31.0.0/16"
+      Tags:
+        - Key: Name
+          Value: CloudFormationPublicSubnet
+    DependsOn: CFVPC
+
+  CFVPCRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      Tags: 
+        - Key: Name
+          Value: VPCRouteTable
+      VpcId:
+        Ref: CFVPC
+    DependsOn: CFVPC
+
+  CFInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: Name
+        Value: CFVPCInternetGateway
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: 
+        Ref: CFVPC
+      InternetGatewayId: 
+        Ref: CFInternetGateway
+    DependsOn: CFInternetGateway
+
+  CFVPCRoute:
+    Type: AWS::EC2::Route
+    Properties: 
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId:
+        Ref: CFVPCRouteTable
+      GatewayId:
+        Ref: CFInternetGateway 
+    DependsOn: [CFVPCRouteTable, CFInternetGateway, AttachGateway]
+
+  SubnetRouteAssosiaction:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: 
+        Ref: CFVPCRouteTable
+      SubnetId: 
+        Ref: CFPublicSubnet
+
+  EC2InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow SSH to the Instance
+      VpcId:
+        Ref: CFVPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 0.0.0.0/0
+      Tags: 
+        - Key: Name
+          Value: CFTestInstance
+    DependsOn: CFVPC
+
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties: 
+      ImageId: 
+        Ref: LatestAmiId
+      KeyName: home_pc_key_pair
+      InstanceType: t2.micro
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: true
+          DeviceIndex: 0
+          GroupSet: 
+          - Ref: EC2InstanceSecurityGroup
+          SubnetId: 
+            Ref: CFPublicSubnet
+      Tenancy: default
+      Tags: 
+        - Key: Name
+          Value: CFTestInstance
+      UserData: 
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          echo "Hello World" > home/ec2-user/welcome.txt
+          sudo yum install httpd -y
+          sudo systemctl start httpd
+        
