@@ -1,3 +1,4 @@
+# Terraform is better than CloudFormation :)
 provider "aws" {
   region     = "us-east-1"
   access_key = "ACCESS_KEY"
@@ -115,7 +116,7 @@ resource "aws_eip" "terraform_eip" {
 resource "aws_instance" "terraform_ec2_instance" {
   ami           = "ami-0d5eff06f840b45e9"
   instance_type = "t2.micro"
-  key_name      = "new_pair"
+  key_name      = "KEY_PAIR_NAME"
 
   network_interface {
     network_interface_id = aws_network_interface.terraform_network_interface.id
