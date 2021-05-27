@@ -1,3 +1,7 @@
+# Use Environment variables for assigning Access Key ID & Secret Key
+# export AWS_ACCESS_KEY_ID="ACCESS_KEY_ID"
+# export AWS_SECRET_ACCESS_KEY="SECRET_ACCESS_KEY"
+
 provider "aws" {
   region = "us-east-1"
 }
