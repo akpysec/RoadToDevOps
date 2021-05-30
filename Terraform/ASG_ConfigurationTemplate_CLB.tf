@@ -1,5 +1,4 @@
 # IN PROGRESS!
-
 provider "aws" {
   region = "us-east-1"
 }
@@ -40,14 +39,14 @@ resource "aws_security_group" "web" {
 
 # Creating launch configuration for a web server
 resource "aws_launch_configuration" "web" {
-  name            = "WebServer-Highly-Available-LC"
+  name = "WebServer-Highly-Available-LC"
   # Getting image ID through Data Source
   image_id        = data.aws_ami.ami_linux_2.id
   instance_type   = "t3.micro"
   security_groups = [aws_security_group.web.id]
   # Using external file for User Data
-  user_data       = file("user_data.sh")
-  
+  user_data = file("user_data.sh")
+
   # Lifecycle policy - as says "Creates new resources and only after destroys the old ones"
   lifecycle {
     create_before_destroy = true
@@ -56,18 +55,18 @@ resource "aws_launch_configuration" "web" {
 
 # Creating Auto-Scaling Group
 resource "aws_autoscaling_group" "web" {
-  name                = "WebServer-Highly-Available-ASG"
-  max_size            = 2
-  min_size            = 2
-  min_elb_capacity    = 2
-  launch_template     = aws_launch_configuration.web.id
-  health_check_type   = "ELB"
-  vpc_zone_identifier = []
-  load_balancers      = []
-  
+  name                 = "WebServer-Highly-Available-ASG"
+  max_size             = 2
+  min_size             = 2
+  min_elb_capacity     = 2
+  launch_configuration = aws_launch_configuration.web.id
+  health_check_type    = "ELB"
+  vpc_zone_identifier  = []
+  load_balancers       = []
+
   # Looping over tags
   dynamic "tag" {
-    for_each {
+    for_each = {
       Name  = "Web Server in ASG"
       Owner = "AK"
     }
@@ -80,7 +79,9 @@ resource "aws_autoscaling_group" "web" {
 
   # Lifecycle policy - as says "Creates new resources and only after destroys the old ones"
   lifecycle {
-  create_before_destroy = true
+    create_before_destroy = true
   }
 }
+
+
 
