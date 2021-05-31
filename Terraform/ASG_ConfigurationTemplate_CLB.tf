@@ -68,6 +68,7 @@ resource "aws_launch_configuration" "web" {
 
 # Creating Auto-Scaling Group
 resource "aws_autoscaling_group" "web" {
+  # Create unique name from Launch configuration name, use ${insert_value}
   name                 = "ASG-${aws_launch_configuration.web.name}"
   launch_configuration = aws_launch_configuration.web.name
   max_size             = 2
