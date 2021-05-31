@@ -51,6 +51,7 @@ resource "aws_security_group" "web" {
 
 # Creating launch configuration for a web server
 resource "aws_launch_configuration" "web" {
+  # Use Name prefix to avoid failure launches due to existing name
   name_prefix = "WebServer-Highly-Available-LC"
   # Getting image ID through Data Source
   image_id        = data.aws_ami.ami_linux_2.id
