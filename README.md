@@ -1,3 +1,3 @@
 # RoadToDevOps
-Follow along with Adrian Cantrill AWS Developer Course
-Follow along with Denis Astahov Terraform Course
+- Follow along with Adrian Cantrill AWS Developer Course
+- Follow along with Denis Astahov Terraform Course
